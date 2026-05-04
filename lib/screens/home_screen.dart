@@ -9,11 +9,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final firebaseService = FirebaseService();
+  final taskName = TextEditingController();
+  final taskDescription = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 1,
         title: Text('My Todos'),
         actions: [
           IconButton(
@@ -22,8 +25,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: Text('Confirm Action'),
-                    content: Text('Are you sure you want to delete this item?'),
+                    title: Text('Add TODO'),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("Todo Name"),
+                        ),
+                        TextField(
+                          controller: taskName,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('Enter about Todo'),
+                        ),
+                        TextField(
+                          controller: taskDescription,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () =>
@@ -42,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               );
             },
-            icon: Icon(Icons.plus_one_rounded),
+            icon: Icon(Icons.add),
           ),
         ],
       ),
@@ -66,8 +95,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 return ListTile(
                   title: Text(todo.title),
                   subtitle: Text(todo.description),
-                  trailing: Icon(
-                    todo.completed ? Icons.check_circle : Icons.circle_rounded,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Checkbox(
+                        value: todo.completed,
+                        onChanged: (val) {
+                          TodoModel updateTodo = TodoModel(
+                            id: todo.id,
+                            title: todo.title,
+                            description: todo.description,
+                            completed: !todo.completed,
+                            createdAt: todo.createdAt,
+                          );
+
+                          firebaseService.updateTodo(updateTodo);
+
+                          setState(() {});
+                        },
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          firebaseService.deleteTodo(todo.id);
+                          setState(() {});
+                        },
+                        icon: Icon(Icons.delete),
+                      ),
+                    ],
                   ),
                 );
               },
