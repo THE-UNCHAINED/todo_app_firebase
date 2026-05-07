@@ -15,9 +15,9 @@ class TodoModel {
     required this.createdAt,
   });
 
-  factory TodoModel.fromJson(Map<String, dynamic> json) {
+  factory TodoModel.fromJson(Map<String, dynamic> json, String docId) {
     return TodoModel(
-      id: json['id'] as String,
+      id: docId,
       title: json['title'] as String,
       description: json['description'] as String,
       completed: json['completed'] as bool,

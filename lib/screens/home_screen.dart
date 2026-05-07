@@ -61,9 +61,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          // Add your logic here
+                          var titleName = taskName.text;
+                          var descriptionData = taskDescription.text;
+                          if (titleName.isEmpty || descriptionData.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Please fill all fields!'),
+                              ),
+                            );
+                            return;
+                          }
+                          final todoModel = TodoModel(
+                            id: '',
+                            title: titleName,
+                            description: descriptionData,
+                            completed: false,
+                            createdAt: DateTime.now(),
+                          );
+                          firebaseService.addTodo(todoModel);
+
+                          taskDescription.clear();
+                          taskName.clear();
+
                           Navigator.pop(context);
                         },
+
                         child: Text('Confirm'),
                       ),
                     ],
@@ -75,8 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<TodoModel>>(
-        future: firebaseService.getTodos(),
+      body: StreamBuilder<List<TodoModel>>(
+        stream: firebaseService.getTodosStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -110,14 +132,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
 
                           firebaseService.updateTodo(updateTodo);
-
-                          setState(() {});
                         },
                       ),
                       IconButton(
                         onPressed: () {
                           firebaseService.deleteTodo(todo.id);
-                          setState(() {});
                         },
                         icon: Icon(Icons.delete),
                       ),
