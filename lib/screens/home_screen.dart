@@ -114,33 +114,42 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: todos.length,
               itemBuilder: (context, index) {
                 final todo = todos[index];
-                return ListTile(
-                  title: Text(todo.title),
-                  subtitle: Text(todo.description),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Checkbox(
-                        value: todo.completed,
-                        onChanged: (val) {
-                          TodoModel updateTodo = TodoModel(
-                            id: todo.id,
-                            title: todo.title,
-                            description: todo.description,
-                            completed: !todo.completed,
-                            createdAt: todo.createdAt,
-                          );
+                return AnimatedOpacity(
+                  opacity: 1,
+                  duration: Duration(milliseconds: 500),
+                  child: AnimatedSlide(
+                    offset: Offset(0, 0),
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeOut,
+                    child: ListTile(
+                      title: Text(todo.title),
+                      subtitle: Text(todo.description),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                            value: todo.completed,
+                            onChanged: (val) {
+                              TodoModel updateTodo = TodoModel(
+                                id: todo.id,
+                                title: todo.title,
+                                description: todo.description,
+                                completed: !todo.completed,
+                                createdAt: todo.createdAt,
+                              );
 
-                          firebaseService.updateTodo(updateTodo);
-                        },
+                              firebaseService.updateTodo(updateTodo);
+                            },
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              firebaseService.deleteTodo(todo.id);
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        onPressed: () {
-                          firebaseService.deleteTodo(todo.id);
-                        },
-                        icon: Icon(Icons.delete),
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },
