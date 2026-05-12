@@ -11,6 +11,21 @@ class _HomeScreenState extends State<HomeScreen> {
   final firebaseService = FirebaseService();
   final taskName = TextEditingController();
   final taskDescription = TextEditingController();
+  List<TodoModel> previousTodos = [];
+
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey();
+
+  void _handleListChanges(List<TodoModel> newTodos) {
+    // Compare old list with new list
+    if (newTodos.length > previousTodos.length) {
+      // NEW ITEM ADDED!
+      int newIndex = newTodos.length - 1;
+      _listKey.currentState?.insertItem(newIndex);
+    }
+
+    // Update previous list
+    previousTodos = newTodos;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,45 +125,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             final todos = snapshot.data!;
-            return ListView.builder(
-              itemCount: todos.length,
-              itemBuilder: (context, index) {
+            _handleListChanges(todos);
+            return AnimatedList(
+              key: _listKey, // ← We'll create this in a moment
+              initialItemCount: todos.length,
+              itemBuilder: (context, index, animation) {
                 final todo = todos[index];
-                return AnimatedOpacity(
-                  opacity: 1,
-                  duration: Duration(milliseconds: 500),
-                  child: AnimatedSlide(
-                    offset: Offset(0, 0),
-                    duration: Duration(milliseconds: 500),
-                    curve: Curves.easeOut,
-                    child: ListTile(
-                      title: Text(todo.title),
-                      subtitle: Text(todo.description),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                            value: todo.completed,
-                            onChanged: (val) {
-                              TodoModel updateTodo = TodoModel(
-                                id: todo.id,
-                                title: todo.title,
-                                description: todo.description,
-                                completed: !todo.completed,
-                                createdAt: todo.createdAt,
-                              );
-
-                              firebaseService.updateTodo(updateTodo);
-                            },
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              firebaseService.deleteTodo(todo.id);
-                            },
-                            icon: Icon(Icons.delete),
-                          ),
-                        ],
-                      ),
+                return SlideTransition(
+                  position: animation.drive(
+                    Tween<Offset>(
+                      begin: Offset(0, -1),
+                      end: Offset(0, 0),
+                    ).chain(CurveTween(curve: Curves.easeOut)),
+                  ),
+                  child: ListTile(
+                    title: Text(todo.title),
+                    subtitle: Text(todo.description),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                          value: todo.completed,
+                          onChanged: (val) {
+                            TodoModel updateTodo = TodoModel(
+                              id: todo.id,
+                              title: todo.title,
+                              description: todo.description,
+                              completed: !todo.completed,
+                              createdAt: todo.createdAt,
+                            );
+                            firebaseService.updateTodo(updateTodo);
+                          },
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            firebaseService.deleteTodo(todo.id);
+                          },
+                          icon: Icon(Icons.delete),
+                        ),
+                      ],
                     ),
                   ),
                 );
